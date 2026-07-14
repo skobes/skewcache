@@ -1,0 +1,14 @@
+{
+  "include": [ "*.ts" ],
+  "compilerOptions": {
+    "outDir": "dist",
+    "rewriteRelativeImportExtensions": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "esnext",
+    "module": "nodenext",
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "types": ["node"]
+  }
+}

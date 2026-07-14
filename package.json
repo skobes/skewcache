@@ -1,0 +1,34 @@
+{
+  "name": "skewcache",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "skewcache": "./dist/main.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "npm run build",
+    "type-check": "tsc --noEmit",
+    "test": "npm run test:unit && node integration-test.ts",
+    "test:unit": "node --harmony-temporal --test config-test.ts restore-test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.110.0"
+  },
+  "dependencies": {
+    "cosmiconfig": "^9.0.2",
+    "fflate": "^0.8.3",
+    "loglevel": "^1.9.2",
+    "nano-spawn": "^2.1.0"
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "sharp": true,
+    "workerd": true
+  }
+}
