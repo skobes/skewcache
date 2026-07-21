@@ -1,7 +1,27 @@
 {
   "name": "skewcache",
   "version": "0.1.0",
+  "description": "Mixes downlevel assets into your dist/ when deploying to Cloudflare.",
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "static-assets",
+    "wrangler",
+    "r2",
+    "deploy",
+    "version-skew"
+  ],
+  "license": "MIT",
+  "author": "Steve Kobes <steve@kobes.ca>",
+  "homepage": "https://github.com/skobes/skewcache#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skobes/skewcache.git"
+  },
   "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "bin": {
     "skewcache": "./dist/main.js"
   },
