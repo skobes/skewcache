@@ -1,4 +1,3 @@
-import process from "node:process";
 import log from "loglevel";
 import { red, yellow } from "yoctocolors";
 
@@ -24,7 +23,10 @@ export function isVerbose(): boolean {
   return logger.getLevel() <= log.levels.INFO;
 }
 
+// Thrown by die(); main() catches it, reports the message, and exits 1.
+// Nothing else may catch it, or a fatal error would be silently swallowed.
+export class FatalError extends Error {}
+
 export function die(msg: string): never {
-  error(msg);
-  process.exit(1);
+  throw new FatalError(msg);
 }

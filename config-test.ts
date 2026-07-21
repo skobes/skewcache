@@ -1,15 +1,11 @@
-import { test, before, after, type TestContext } from "node:test";
+import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { resolveConfig } from "./config.ts";
-import { setSilent } from "./logging.ts";
-
-// die() logs before exiting; silence it so expected failures don't clutter
-// the test output.
-setSilent();
+import { FatalError } from "./logging.ts";
 
 let workDir: string;
 before(() => {
@@ -21,19 +17,6 @@ after(() => {
   process.chdir(os.tmpdir());
   fs.rmSync(workDir, { recursive: true, force: true });
 });
-
-// die() calls process.exit(1); turn that into a throw so the config
-// functions reject instead of terminating the test process.
-function mockExit(t: TestContext): void {
-  t.mock.method(
-    process,
-    "exit",
-    ((code?: number) => {
-      throw new Error(`exit(${code})`);
-    }) as unknown as typeof process.exit,
-  );
-}
-const exits = /exit\(1\)/;
 
 test("defaults: package name, built-in settings, derived paths", async () => {
   const cfg = await resolveConfig({});
@@ -102,19 +85,16 @@ test("JS config assetDir accepts a string or a RegExp", async () => {
   assert.match("v7", cfg.assetDir);
 });
 
-test("invalid --max-age-days dies", async (t) => {
-  mockExit(t);
-  await assert.rejects(resolveConfig({ "max-age-days": "nope" }), exits);
-  await assert.rejects(resolveConfig({ "max-age-days": "-1" }), exits);
+test("invalid --max-age-days dies", async () => {
+  await assert.rejects(resolveConfig({ "max-age-days": "nope" }), FatalError);
+  await assert.rejects(resolveConfig({ "max-age-days": "-1" }), FatalError);
 });
 
-test("invalid --asset-dir dies", async (t) => {
-  mockExit(t);
-  await assert.rejects(resolveConfig({ "asset-dir": "(" }), exits);
+test("invalid --asset-dir dies", async () => {
+  await assert.rejects(resolveConfig({ "asset-dir": "(" }), FatalError);
 });
 
-test("config file rejects bad values", async (t) => {
-  mockExit(t);
+test("config file rejects bad values", async () => {
   const rc = path.join(workDir, "rc-bad.json");
   const cases = [
     { maxAge: "P3D", maxAgeDays: 3 }, // both forms at once
@@ -126,26 +106,25 @@ test("config file rejects bad values", async (t) => {
   ];
   for (const bad of cases) {
     fs.writeFileSync(rc, JSON.stringify(bad));
-    await assert.rejects(resolveConfig({ config: rc }), exits, JSON.stringify(bad));
+    await assert.rejects(resolveConfig({ config: rc }), FatalError, JSON.stringify(bad));
   }
 });
 
 test("missing package.json (and no --name) dies", async (t) => {
-  mockExit(t);
   const bare = fs.mkdtempSync(path.join(os.tmpdir(), "skewcache-utest-bare-"));
   t.after(() => {
     process.chdir(workDir);
     fs.rmSync(bare, { recursive: true, force: true });
   });
   process.chdir(bare);
-  await assert.rejects(resolveConfig({}), exits);
+  await assert.rejects(resolveConfig({}), FatalError);
   // With --name, package.json is never consulted.
   const cfg = await resolveConfig({ name: "explicit" });
   assert.equal(cfg.name, "explicit");
   // An unparseable package.json dies cleanly (cosmiconfig also reads it for
   // its meta-config, which must not leak a raw JSONError).
   fs.writeFileSync(path.join(bare, "package.json"), "not json\n");
-  await assert.rejects(resolveConfig({ name: "explicit" }), exits);
+  await assert.rejects(resolveConfig({ name: "explicit" }), FatalError);
 });
 
 test("maxAge boundary: zero days is allowed", async () => {

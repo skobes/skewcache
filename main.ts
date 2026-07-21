@@ -3,7 +3,7 @@
 import { parseArgs } from "node:util";
 import process from "node:process";
 import { resolveConfig } from "./config.ts";
-import { die, setVerbose } from "./logging.ts";
+import { die, error, FatalError, setVerbose } from "./logging.ts";
 import { predeploy, postdeploy } from "./skewcache.ts";
 
 const USAGE = `usage: skewcache <predeploy|postdeploy> [options]
@@ -94,4 +94,12 @@ async function main(): Promise<void> {
   }
 }
 
-await main();
+try {
+  await main();
+} catch (err) {
+  if (err instanceof FatalError) {
+    error(err.message);
+    process.exit(1);
+  }
+  throw err;
+}
