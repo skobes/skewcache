@@ -8,6 +8,10 @@ import { predeploy, postdeploy } from "./skewcache.ts";
 
 const USAGE = `usage: skewcache <predeploy|postdeploy> [options]
 
+commands:
+  predeploy              fetch cache and mix into dist
+  postdeploy             upload new cache
+
 options:
   --name <name>          project name; the R2 object key is <name>.zip
                          (default: the "name" field of ./package.json)
@@ -27,19 +31,22 @@ options:
   -h, --help             show this help
 
 configuration file:
-  Options may also be set in a config file in the current directory: a
-  "skewcache" key in package.json, .skewcacherc (JSON or YAML),
-  .skewcacherc.{json,yaml,yml,js,mjs,cjs}, or skewcache.config.{js,mjs,cjs}.
-  Recognized keys: name, bucket, dist, tmp, maxAge (an ISO 8601 duration
-  string like "P7D", a duration-like object, or a Temporal.Duration from a
-  JS config), maxAgeDays (a number of days; alternative to maxAge),
-  assetDir (a regex string, or a RegExp from a JS config), and local.
+  Options may also be set in skewcache.config.js:
+  {
+    name: string,
+    bucket: string,
+    dist: string,
+    tmp: string,
+    maxAge: Temporal.Duration,
+    assetDir: RegExp,
+    local: boolean,
+    storage: cfg => {
+      description: string,
+      get: (file: string) => Promise<boolean>,
+      put: (file: string) => Promise<void>
+    }
+  }
   Command-line flags take precedence over the config file.
-
-  A JS config may also set "storage": a function that takes the resolved
-  config and returns a { description, get(file), put(file) } object (the
-  Storage interface in config.ts), replacing the default R2 storage. The
-  bucket and local settings only affect the default R2 storage.
 `;
 
 async function main(): Promise<void> {
