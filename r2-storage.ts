@@ -11,6 +11,12 @@ function wrangler(...args: string[]) {
   return spawn("wrangler", args, opts);
 }
 
+// nano-spawn reports a missing executable as a SubprocessError wrapping the
+// spawn error, so the ENOENT lives on the cause rather than on exitCode.
+function isNotInstalled(err: unknown): boolean {
+  return (err as { cause?: { code?: string } })?.cause?.code === "ENOENT";
+}
+
 export const r2Storage: StorageFactory = (cfg) => {
   const remoteFlag = cfg.local ? [] : ["--remote"];
   return {
@@ -20,11 +26,11 @@ export const r2Storage: StorageFactory = (cfg) => {
       if (!cfg.local) {
         // Confirm wrangler runs and the user is authenticated.
         await wrangler("whoami", "--json").catch((err) => {
+          if (isNotInstalled(err)) {
+            die(`wrangler is not installed; try \`npm install -D wrangler\``);
+          }
           if (err.stderr) process.stderr.write(err.stderr + "\n");
-          die(
-            `wrangler whoami failed; is wrangler installed and are you ` +
-              `logged in? (try \`npx wrangler login\`)`,
-          );
+          die(`wrangler is not logged in; try \`npx wrangler login\``);
         });
         // Create bucket if it doesn't exist yet.
         await wrangler("r2", "bucket", "info", cfg.bucket).catch(async () => {
@@ -46,6 +52,9 @@ export const r2Storage: StorageFactory = (cfg) => {
     put: async (file) => {
       await wrangler("r2", "object", "put", cfg.remotePath, ...remoteFlag, `--file=${file}`).catch(
         (err) => {
+          if (isNotInstalled(err)) {
+            throw new Error(`wrangler is not installed; try \`npm install -D wrangler\``);
+          }
           if (err.stderr) process.stderr.write(err.stderr + "\n");
           throw new Error(`wrangler r2 object put ${cfg.remotePath} failed`);
         },
