@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createZip, extractZip } from "./archive.ts";
 import { type Config, ENTRY_RE } from "./config.ts";
-import { die, logger, start } from "./logging.ts";
+import { die, info, warn } from "./logging.ts";
 import { restoreRecentRevisions } from "./restore.ts";
 
 export async function predeploy(cfg: Config): Promise<void> {
@@ -18,7 +18,7 @@ export async function predeploy(cfg: Config): Promise<void> {
 }
 
 function findRevision(cfg: Config): string {
-  start("Locating build revision");
+  info("Locating build revision");
   if (!fs.existsSync(cfg.dist)) {
     die(`no ${cfg.dist}/ directory matching ${cfg.assetDir} found`);
   }
@@ -32,14 +32,14 @@ function findRevision(cfg: Config): string {
   } else if (revs.length > 1) {
     die(`multiple revision directories found in ${cfg.dist}/ (${revs.join(", ")})`);
   }
-  logger.info(`found ${revs[0]}`);
+  info(`found ${revs[0]}`);
   return revs[0];
 }
 
 function makeTmpDir(cfg: Config): void {
-  start(`Creating ${cfg.tmp}`);
+  info(`Creating ${cfg.tmp}`);
   if (fs.existsSync(cfg.tmp)) {
-    logger.warn(
+    warn(
       `${cfg.tmp} already exists (leftover from a previous failed deploy?); ` +
         `removing`,
     );
@@ -49,10 +49,10 @@ function makeTmpDir(cfg: Config): void {
 }
 
 async function fetchCache(cfg: Config): Promise<void> {
-  start(`Fetching skewcache from ${cfg.storage.description}`);
+  info(`Fetching skewcache from ${cfg.storage.description}`);
   const fetched = await cfg.storage.get(cfg.archive);
   if (!fetched) {
-    logger.warn("no cache found in storage; starting with empty skewcache");
+    warn("no cache found in storage; starting with empty skewcache");
     fs.rmSync(cfg.archive, { force: true });
     return;
   }
@@ -70,7 +70,7 @@ function saveRevision(cfg: Config, rev: string): void {
   // Entry naming ("^<YYYYMMDD>-<revdir>") is documented at ENTRY_RE in
   // config.ts, which parses these names back.
   const entryName = `^${today}-${rev}`;
-  start(`Adding ${rev} to skewcache as ${entryName}`);
+  info(`Adding ${rev} to skewcache as ${entryName}`);
   // The fresh entry becomes the newest; demote whatever held the marker.
   for (const name of fs.readdirSync(cfg.cacheDir)) {
     if (!name.startsWith("^")) continue;
@@ -111,7 +111,7 @@ function listCache(cfg: Config): void {
 }
 
 async function uploadCache(cfg: Config): Promise<void> {
-  start(`Archiving and uploading skewcache to ${cfg.storage.description}`);
+  info(`Archiving and uploading skewcache to ${cfg.storage.description}`);
   try {
     createZip(cfg.cacheDir, cfg.archive);
   } catch (err) {
@@ -123,6 +123,6 @@ async function uploadCache(cfg: Config): Promise<void> {
 }
 
 function cleanup(cfg: Config): void {
-  start(`Cleaning up ${cfg.tmp}`);
+  info(`Cleaning up ${cfg.tmp}`);
   fs.rmSync(cfg.tmp, { recursive: true, force: true });
 }

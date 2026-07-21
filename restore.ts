@@ -1,11 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { type Config, ENTRY_RE } from "./config.ts";
-import { logger, start } from "./logging.ts";
+import { info, warn } from "./logging.ts";
 
 // Prune stale cache entries and copy surviving revisions back to dist.
 export function restoreRecentRevisions(cfg: Config): void {
-  start(`Restoring recent skew revisions into ${cfg.dist}/`);
+  info(`Restoring recent skew revisions into ${cfg.dist}/`);
   // Entries at or before the cutoff date are stale.
   const cutoff = Temporal.Now.plainDateISO().subtract(cfg.maxAge);
 
@@ -18,7 +18,7 @@ export function restoreRecentRevisions(cfg: Config): void {
   for (const name of entries) {
     const m = ENTRY_RE.exec(name);
     if (!m) {
-      logger.warn(`ignoring unexpected skewcache entry: ${name}`);
+      warn(`ignoring unexpected skewcache entry: ${name}`);
       continue;
     }
     const [, marker, dateStr, rev] = m;
@@ -26,7 +26,7 @@ export function restoreRecentRevisions(cfg: Config): void {
     try {
       entryDate = Temporal.PlainDate.from(dateStr);
     } catch {
-      logger.warn(`ignoring unexpected skewcache entry: ${name}`);
+      warn(`ignoring unexpected skewcache entry: ${name}`);
       continue;
     }
     const entryPath = path.join(cfg.cacheDir, name);
@@ -34,13 +34,13 @@ export function restoreRecentRevisions(cfg: Config): void {
     const isNewest = marker === "^";
 
     if (Temporal.PlainDate.compare(entryDate, cutoff) <= 0 && !isNewest) {
-      logger.info(`deleting stale entry ${name}`);
+      info(`deleting stale entry ${name}`);
       fs.rmSync(entryPath, { recursive: true });
     } else if (fs.existsSync(dest)) {
-      logger.warn(`${dest} already exists; discarding skewcache/${name}`);
+      warn(`${dest} already exists; discarding skewcache/${name}`);
       fs.rmSync(entryPath, { recursive: true });
     } else {
-      logger.info(`restoring ${name} -> ${dest}`);
+      info(`restoring ${name} -> ${dest}`);
       fs.cpSync(entryPath, dest, { recursive: true });
     }
   }

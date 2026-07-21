@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { cosmiconfig } from "cosmiconfig";
-import { die, logger } from "./logging.ts";
+import { die, warn } from "./logging.ts";
 import { r2Storage } from "./r2-storage.ts";
 
 // Cache entries are named "<YYYYMMDD>-<revdir>", where <revdir> is the
@@ -150,7 +150,7 @@ function validateFileConfig(raw: unknown, source: string): FileConfig {
         out.storage = value as StorageFactory;
         break;
       default:
-        logger.warn(`ignoring unknown key "${key}" in ${source}`);
+        warn(`ignoring unknown key "${key}" in ${source}`);
     }
   }
   return out;

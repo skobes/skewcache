@@ -1,7 +1,7 @@
 import process from "node:process";
 import spawn, { type Options } from "nano-spawn";
 import type { StorageFactory } from "./config.ts";
-import { die, isVerbose, logger } from "./logging.ts";
+import { die, isVerbose, warn } from "./logging.ts";
 
 // Run wrangler from the project's node_modules/.bin (preferLocal), falling
 // back to PATH. In verbose mode its output streams to the terminal;
@@ -34,7 +34,7 @@ export const r2Storage: StorageFactory = (cfg) => {
         });
         // Create bucket if it doesn't exist yet.
         await wrangler("r2", "bucket", "info", cfg.bucket).catch(async () => {
-          logger.warn(`R2 bucket ${cfg.bucket} does not exist; creating it`);
+          warn(`R2 bucket ${cfg.bucket} does not exist; creating it`);
           await wrangler("r2", "bucket", "create", cfg.bucket).catch((err) => {
             if (err.stderr) process.stderr.write(err.stderr + "\n");
             die(`wrangler r2 bucket create ${cfg.bucket} failed`);

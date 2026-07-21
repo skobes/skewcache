@@ -5,11 +5,11 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { resolveConfig } from "./config.ts";
-import { logger } from "./logging.ts";
+import { setSilent } from "./logging.ts";
 
 // die() logs before exiting; silence it so expected failures don't clutter
 // the test output.
-logger.setLevel("SILENT");
+setSilent();
 
 let workDir: string;
 before(() => {

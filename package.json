@@ -44,7 +44,8 @@
     "cosmiconfig": "^9.0.2",
     "fflate": "^0.8.3",
     "loglevel": "^1.9.2",
-    "nano-spawn": "^2.1.0"
+    "nano-spawn": "^2.1.0",
+    "yoctocolors": "^2.1.2"
   },
   "allowScripts": {
     "esbuild": true,

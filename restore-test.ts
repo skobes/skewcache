@@ -4,10 +4,10 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { Config } from "./config.ts";
-import { logger } from "./logging.ts";
+import { setSilent } from "./logging.ts";
 import { restoreRecentRevisions } from "./restore.ts";
 
-logger.setLevel("SILENT"); // silence expected warnings
+setSilent(); // silence expected warnings
 
 const today = Temporal.Now.plainDateISO();
 const stamp = (d: Temporal.PlainDate) => d.toString().replaceAll("-", "");

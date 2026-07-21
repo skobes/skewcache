@@ -1,15 +1,23 @@
 import process from "node:process";
 import log from "loglevel";
+import { red, yellow } from "yoctocolors";
 
 // warn/error go to stderr via console; info/debug appear only under --verbose.
-export const logger = log.getLogger("skewcache");
+const logger = log.getLogger("skewcache");
 logger.setLevel("WARN"); // warnings and errors only, until --verbose raises it
 
-// loglevel has no start()/progress level; alias it to info.
-export const start = (...args: unknown[]): void => logger.info(...args);
+// Warnings and errors get a colored prefix; yoctocolors is a no-op when the
+// terminal doesn't support color (NO_COLOR, etc).
+export const warn = (msg: string): void => logger.warn(yellow("warning:"), msg);
+export const error = (msg: string): void => logger.error(red("error:"), msg);
+export const info = (msg: string): void => logger.info(msg);
 
 export function setVerbose(v: boolean): void {
   logger.setLevel(v ? "INFO" : "WARN");
+}
+
+export function setSilent(): void {
+  logger.setLevel("SILENT");
 }
 
 export function isVerbose(): boolean {
@@ -17,6 +25,6 @@ export function isVerbose(): boolean {
 }
 
 export function die(msg: string): never {
-  logger.error(msg);
+  error(msg);
   process.exit(1);
 }
