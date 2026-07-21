@@ -1,7 +1,7 @@
 import process from "node:process";
 import spawn, { type Options } from "nano-spawn";
 import type { StorageFactory } from "./config.ts";
-import { die, isVerbose } from "./logging.ts";
+import { die, isVerbose, logger } from "./logging.ts";
 
 // Run wrangler from the project's node_modules/.bin (preferLocal), falling
 // back to PATH. In verbose mode its output streams to the terminal;
@@ -17,18 +17,22 @@ export const r2Storage: StorageFactory = (cfg) => {
     description: `r2 (${cfg.remotePath})`,
 
     get: async (file) => {
-      // Confirm wrangler runs and the user is authenticated before the
-      // download, so an auth or install problem isn't mistaken for a
-      // missing archive (which get reports by returning false). `whoami
-      // --json` exits non-zero when not logged in. Local simulated R2
-      // needs no auth, so skip the check there.
       if (!cfg.local) {
+        // Confirm wrangler runs and the user is authenticated.
         await wrangler("whoami", "--json").catch((err) => {
           if (err.stderr) process.stderr.write(err.stderr + "\n");
           die(
             `wrangler whoami failed; is wrangler installed and are you ` +
               `logged in? (try \`npx wrangler login\`)`,
           );
+        });
+        // Create bucket if it doesn't exist yet.
+        await wrangler("r2", "bucket", "info", cfg.bucket).catch(async () => {
+          logger.warn(`R2 bucket ${cfg.bucket} does not exist; creating it`);
+          await wrangler("r2", "bucket", "create", cfg.bucket).catch((err) => {
+            if (err.stderr) process.stderr.write(err.stderr + "\n");
+            die(`wrangler r2 bucket create ${cfg.bucket} failed`);
+          });
         });
       }
       try {
