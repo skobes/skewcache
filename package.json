@@ -33,7 +33,7 @@
     "prepack": "npm run build",
     "type-check": "tsc --noEmit",
     "test": "npm run test:unit && node integration-test.ts",
-    "test:unit": "node --harmony-temporal --test config-test.ts restore-test.ts"
+    "test:unit": "node --harmony-temporal --test \"!(integration)-test.ts\""
   },
   "devDependencies": {
     "@types/node": "^26.1.1",

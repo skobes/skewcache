@@ -17,8 +17,7 @@ function isNotInstalled(err: unknown): boolean {
   return (err as { cause?: { code?: string } })?.cause?.code === "ENOENT";
 }
 
-// Confirm wrangler runs and the user is authenticated. Throws with
-// remediation advice; callers decide whether to die or propagate.
+// Confirm wrangler runs and the user is authenticated.
 async function checkWrangler(): Promise<void> {
   await wrangler("whoami", "--json").catch((err) => {
     if (isNotInstalled(err)) {
