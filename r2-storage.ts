@@ -1,7 +1,7 @@
 import process from "node:process";
 import spawn, { type Options } from "nano-spawn";
 import type { StorageFactory } from "./config.ts";
-import { die, isVerbose, warn } from "./logging.ts";
+import { isVerbose, warn } from "./logging.ts";
 
 // Run wrangler from the project's node_modules/.bin (preferLocal), falling
 // back to PATH. In verbose mode its output streams to the terminal;
@@ -17,6 +17,18 @@ function isNotInstalled(err: unknown): boolean {
   return (err as { cause?: { code?: string } })?.cause?.code === "ENOENT";
 }
 
+// Confirm wrangler runs and the user is authenticated. Throws with
+// remediation advice; callers decide whether to die or propagate.
+async function checkWrangler(): Promise<void> {
+  await wrangler("whoami", "--json").catch((err) => {
+    if (isNotInstalled(err)) {
+      throw new Error(`wrangler is not installed; try \`npm install -D wrangler\``);
+    }
+    if (err.stderr) process.stderr.write(err.stderr + "\n");
+    throw new Error(`wrangler is not logged in; try \`npx wrangler login\``);
+  });
+}
+
 export const r2Storage: StorageFactory = (cfg) => {
   const remoteFlag = cfg.local ? [] : ["--remote"];
   return {
@@ -24,20 +36,13 @@ export const r2Storage: StorageFactory = (cfg) => {
 
     get: async (file) => {
       if (!cfg.local) {
-        // Confirm wrangler runs and the user is authenticated.
-        await wrangler("whoami", "--json").catch((err) => {
-          if (isNotInstalled(err)) {
-            die(`wrangler is not installed; try \`npm install -D wrangler\``);
-          }
-          if (err.stderr) process.stderr.write(err.stderr + "\n");
-          die(`wrangler is not logged in; try \`npx wrangler login\``);
-        });
+        await checkWrangler();
         // Create bucket if it doesn't exist yet.
         await wrangler("r2", "bucket", "info", cfg.bucket).catch(async () => {
           warn(`R2 bucket ${cfg.bucket} does not exist; creating it`);
           await wrangler("r2", "bucket", "create", cfg.bucket).catch((err) => {
             if (err.stderr) process.stderr.write(err.stderr + "\n");
-            die(`wrangler r2 bucket create ${cfg.bucket} failed`);
+            throw new Error(`wrangler r2 bucket create ${cfg.bucket} failed`);
           });
         });
       }
@@ -50,8 +55,13 @@ export const r2Storage: StorageFactory = (cfg) => {
     },
 
     put: async (file) => {
+      // predeploy and postdeploy are separate invocations, so get()'s check
+      // does not cover this one.
+      if (!cfg.local) await checkWrangler();
       await wrangler("r2", "object", "put", cfg.remotePath, ...remoteFlag, `--file=${file}`).catch(
         (err) => {
+          // Only reachable in local mode; checkWrangler() catches this first
+          // for remote.
           if (isNotInstalled(err)) {
             throw new Error(`wrangler is not installed; try \`npm install -D wrangler\``);
           }

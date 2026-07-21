@@ -50,7 +50,9 @@ function makeTmpDir(cfg: Config): void {
 
 async function fetchCache(cfg: Config): Promise<void> {
   info(`Fetching skewcache from ${cfg.storage.description}`);
-  const fetched = await cfg.storage.get(cfg.archive);
+  const fetched = await cfg.storage
+    .get(cfg.archive)
+    .catch((err) => die(`failed to fetch skewcache: ${err.message ?? err}`));
   if (!fetched) {
     warn("no cache found in storage; starting with empty skewcache");
     fs.rmSync(cfg.archive, { force: true });

@@ -17,7 +17,9 @@ export interface Storage {
   readonly description: string;
 
   // Download the cache archive into the local file at `file`. Returns false
-  // if no archive exists in storage yet.
+  // if no archive exists in storage yet; throws if storage is unusable (bad
+  // credentials, missing tooling). Both methods report failure by throwing,
+  // and the caller turns that into a fatal error.
   get(file: string): Promise<boolean>;
 
   // Upload the local file at `file` as the new cache archive.
