@@ -39,10 +39,11 @@ function findRevision(cfg: Config): string {
 function makeTmpDir(cfg: Config): void {
   start(`Creating ${cfg.tmp}`);
   if (fs.existsSync(cfg.tmp)) {
-    die(
+    logger.warn(
       `${cfg.tmp} already exists (leftover from a previous failed deploy?); ` +
-        `remove it and retry`,
+        `removing`,
     );
+    fs.rmSync(cfg.tmp, { recursive: true, force: true });
   }
   fs.mkdirSync(cfg.cacheDir, { recursive: true });
 }
