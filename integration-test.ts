@@ -111,13 +111,13 @@ test("skewcache round-trips revisions through wrangler's local R2", async (t) =>
     fs.rmSync(rc);
   });
 
-  await t.test("custom revision formats via --revision-pattern", async () => {
+  await t.test("custom revision formats via --asset-dir", async () => {
     const makeVersionBuild = (v: string) => {
       fs.rmSync(path.join(proj, "dist"), { recursive: true, force: true });
       fs.mkdirSync(path.join(proj, "dist", v), { recursive: true });
       fs.writeFileSync(path.join(proj, "dist", v, "app.js"), `asset-${v}\n`);
     };
-    const args = ["--revision-pattern", "^v\\d+\\.\\d+\\.\\d+$", "--name", "itest-generic"];
+    const args = ["--asset-dir", "^v\\d+\\.\\d+\\.\\d+$", "--name", "itest-generic"];
 
     makeVersionBuild("v1.2.3");
     const pre = await run("predeploy", ...args);

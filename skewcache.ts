@@ -20,15 +20,15 @@ export async function predeploy(cfg: Config): Promise<void> {
 function findRevision(cfg: Config): string {
   start("Locating build revision");
   if (!fs.existsSync(cfg.dist)) {
-    die(`no ${cfg.dist}/ directory matching ${cfg.revisionPattern} found`);
+    die(`no ${cfg.dist}/ directory matching ${cfg.assetDir} found`);
   }
   const revs = fs
     .readdirSync(cfg.dist, { withFileTypes: true })
-    .filter((e) => e.isDirectory() && cfg.revisionPattern.test(e.name))
+    .filter((e) => e.isDirectory() && cfg.assetDir.test(e.name))
     .map((e) => e.name);
 
   if (revs.length === 0) {
-    die(`no ${cfg.dist}/ directory matching ${cfg.revisionPattern} found`);
+    die(`no ${cfg.dist}/ directory matching ${cfg.assetDir} found`);
   } else if (revs.length > 1) {
     die(`multiple revision directories found in ${cfg.dist}/ (${revs.join(", ")})`);
   }

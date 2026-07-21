@@ -16,7 +16,7 @@ options:
   --tmp <dir>            temp working directory (default: .deploytmp)
   --max-age-days <n>     prune cache entries older than this, except the
                          newest one (default: 7)
-  --revision-pattern <re>  regex matching the revision directory name inside
+  --asset-dir <re>       regex matching the revision directory name inside
                          the dist directory (default: ^r\\.\\d+$)
   --local                use wrangler's local simulated R2 instead of the
                          real remote bucket (mainly for testing)
@@ -33,7 +33,7 @@ configuration file:
   Recognized keys: name, bucket, dist, tmp, maxAge (an ISO 8601 duration
   string like "P7D", a duration-like object, or a Temporal.Duration from a
   JS config), maxAgeDays (a number of days; alternative to maxAge),
-  revisionPattern (a regex string, or a RegExp from a JS config), and local.
+  assetDir (a regex string, or a RegExp from a JS config), and local.
   Command-line flags take precedence over the config file.
 
   A JS config may also set "storage": a function that takes the resolved
@@ -53,7 +53,7 @@ async function main(): Promise<void> {
       dist: { type: "string" },
       tmp: { type: "string" },
       "max-age-days": { type: "string" },
-      "revision-pattern": { type: "string" },
+      "asset-dir": { type: "string" },
       local: { type: "boolean" },
       config: { type: "string" },
       verbose: { type: "boolean", short: "v", default: false },

@@ -1,11 +1,3 @@
-/**
- * Unit tests for config resolution (config.ts). Runs in-process against a
- * temp working directory; die()'s process.exit is mocked to throw so error
- * paths can be asserted without killing the test runner.
- *
- * Run with: npm test (or node --test config-test.ts)
- */
-
 import { test, before, after, type TestContext } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -51,8 +43,8 @@ test("defaults: package name, built-in settings, derived paths", async () => {
   assert.equal(cfg.tmp, ".deploytmp");
   assert.equal(cfg.local, false);
   assert.equal(cfg.maxAge.total("days"), 7);
-  assert.match("r.42", cfg.revisionPattern);
-  assert.doesNotMatch("v1.2.3", cfg.revisionPattern);
+  assert.match("r.42", cfg.assetDir);
+  assert.doesNotMatch("v1.2.3", cfg.assetDir);
   assert.equal(cfg.remotePath, "skewcache/unit-app.zip");
   assert.equal(cfg.cacheDir, path.join(".deploytmp", "skewcache"));
   assert.equal(cfg.archive, path.join(".deploytmp", "skewcache.zip"));
@@ -66,7 +58,7 @@ test("CLI flags override the defaults", async () => {
     dist: "out",
     tmp: "t",
     "max-age-days": "3",
-    "revision-pattern": "^v\\d+$",
+    "asset-dir": "^v\\d+$",
     local: true,
   });
   assert.equal(cfg.name, "other");
@@ -74,8 +66,8 @@ test("CLI flags override the defaults", async () => {
   assert.equal(cfg.dist, "out");
   assert.equal(cfg.tmp, "t");
   assert.equal(cfg.maxAge.total("days"), 3);
-  assert.match("v7", cfg.revisionPattern);
-  assert.doesNotMatch("r.7", cfg.revisionPattern);
+  assert.match("v7", cfg.assetDir);
+  assert.doesNotMatch("r.7", cfg.assetDir);
   assert.equal(cfg.local, true);
   assert.equal(cfg.remotePath, "b/other.zip");
 });
@@ -99,15 +91,15 @@ test("config file maxAge accepts an ISO 8601 duration string", async () => {
   assert.equal(cfg.maxAge.total("days"), 3);
 });
 
-test("JS config revisionPattern accepts a string or a RegExp", async () => {
+test("JS config assetDir accepts a string or a RegExp", async () => {
   const rc = path.join(workDir, "rc-regexp.mjs");
-  fs.writeFileSync(rc, "export default { revisionPattern: /^v\\d+$/ };\n");
+  fs.writeFileSync(rc, "export default { assetDir: /^v\\d+$/ };\n");
   let cfg = await resolveConfig({ config: rc });
-  assert.match("v7", cfg.revisionPattern);
-  assert.doesNotMatch("r.7", cfg.revisionPattern);
-  fs.writeFileSync(rc, 'export default { revisionPattern: "^v\\\\d+$" };\n');
+  assert.match("v7", cfg.assetDir);
+  assert.doesNotMatch("r.7", cfg.assetDir);
+  fs.writeFileSync(rc, 'export default { assetDir: "^v\\\\d+$" };\n');
   cfg = await resolveConfig({ config: rc });
-  assert.match("v7", cfg.revisionPattern);
+  assert.match("v7", cfg.assetDir);
 });
 
 test("invalid --max-age-days dies", async (t) => {
@@ -116,9 +108,9 @@ test("invalid --max-age-days dies", async (t) => {
   await assert.rejects(resolveConfig({ "max-age-days": "-1" }), exits);
 });
 
-test("invalid --revision-pattern dies", async (t) => {
+test("invalid --asset-dir dies", async (t) => {
   mockExit(t);
-  await assert.rejects(resolveConfig({ "revision-pattern": "(" }), exits);
+  await assert.rejects(resolveConfig({ "asset-dir": "(" }), exits);
 });
 
 test("config file rejects bad values", async (t) => {
@@ -129,7 +121,7 @@ test("config file rejects bad values", async (t) => {
     { maxAge: "-P1D" }, // negative duration
     { maxAgeDays: 1.5 }, // non-integer
     { bucket: "" }, // empty string
-    { revisionPattern: "(" }, // bad regex
+    { assetDir: "(" }, // bad regex
     { local: "yes" }, // wrong type
   ];
   for (const bad of cases) {

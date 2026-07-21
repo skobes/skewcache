@@ -32,7 +32,7 @@ interface Settings {
   dist: string;
   tmp: string;
   maxAge: Temporal.Duration; // prune cache entries older than this
-  revisionPattern: RegExp; // matches the revision directory name in dist
+  assetDir: RegExp; // matches the revision directory name in dist
   local: boolean; // use wrangler's local simulated R2
 }
 
@@ -52,7 +52,7 @@ export interface CliOptions {
   dist?: string;
   tmp?: string;
   "max-age-days"?: string;
-  "revision-pattern"?: string;
+  "asset-dir"?: string;
   local?: boolean;
   config?: string;
 }
@@ -119,18 +119,18 @@ function validateFileConfig(raw: unknown, source: string): FileConfig {
         out.maxAge = maxAge;
         break;
       }
-      case "revisionPattern": {
+      case "assetDir": {
         if (value instanceof RegExp) {
-          out.revisionPattern = value;
+          out.assetDir = value;
           break;
         }
         if (typeof value !== "string" || value === "") {
-          die(`invalid "revisionPattern" in ${source}: expected a non-empty string or RegExp`);
+          die(`invalid "assetDir" in ${source}: expected a non-empty string or RegExp`);
         }
         try {
-          out.revisionPattern = new RegExp(value);
+          out.assetDir = new RegExp(value);
         } catch {
-          die(`invalid "revisionPattern" in ${source}: not a valid regular expression`);
+          die(`invalid "assetDir" in ${source}: not a valid regular expression`);
         }
         break;
       }
@@ -185,15 +185,15 @@ export async function resolveConfig(cli: CliOptions): Promise<Config> {
     maxAge = fileCfg.maxAge ?? Temporal.Duration.from({ days: 7 });
   }
 
-  let revisionPattern: RegExp;
-  if (cli["revision-pattern"] !== undefined) {
+  let assetDir: RegExp;
+  if (cli["asset-dir"] !== undefined) {
     try {
-      revisionPattern = new RegExp(cli["revision-pattern"]);
+      assetDir = new RegExp(cli["asset-dir"]);
     } catch {
-      die(`invalid --revision-pattern: not a valid regular expression`);
+      die(`invalid --asset-dir: not a valid regular expression`);
     }
   } else {
-    revisionPattern = fileCfg.revisionPattern ?? /^r\.\d+$/;
+    assetDir = fileCfg.assetDir ?? /^r\.\d+$/;
   }
 
   const settings: Settings = {
@@ -202,7 +202,7 @@ export async function resolveConfig(cli: CliOptions): Promise<Config> {
     dist: cli.dist ?? fileCfg.dist ?? "dist",
     tmp: cli.tmp ?? fileCfg.tmp ?? ".deploytmp",
     maxAge,
-    revisionPattern,
+    assetDir,
     local: cli.local ?? fileCfg.local ?? false,
   };
   const base: Omit<Config, "storage"> = {
