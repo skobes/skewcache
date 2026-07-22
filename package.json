@@ -23,7 +23,7 @@
     "node": ">=24.0.0"
   },
   "bin": {
-    "skewcache": "./dist/main.js"
+    "skewcache": "dist/main.js"
   },
   "files": [
     "dist"
