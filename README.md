@@ -5,6 +5,11 @@ Skewcache mixes downlevel assets into your `dist/` when you deploy to
 so that active client sessions from a previous deployment can still fetch
 delay-loaded JavaScript or similar static resources.
 
+Install: `npm install -D skewcache`
+
+You will also need [Wrangler](https://developers.cloudflare.com/workers/wrangler/install-and-update/)
+installed.
+
 ## Usage
 
 First, configure your bundler to put assets under a versioned path like
