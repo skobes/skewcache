@@ -29,7 +29,7 @@ export interface Storage {
 // Deploy settings, resolved from CLI flags, then the config file, then
 // built-in defaults.
 interface Settings {
-  name: string; // the R2 object key is <name>.zip
+  name: string; // the R2 object key is <name>
   bucket: string;
   dist: string;
   tmp: string;
@@ -60,7 +60,7 @@ export interface CliOptions {
 }
 
 export interface Config extends Settings {
-  remotePath: string; // <bucket>/<name>.zip
+  remotePath: string; // <bucket>/<name>
   cacheDir: string; // <tmp>/skewcache
   archive: string; // <tmp>/skewcache.zip
   storage: Storage; // where the cache archive lives (R2 by default)
@@ -209,7 +209,7 @@ export async function resolveConfig(cli: CliOptions): Promise<Config> {
   };
   const base: Omit<Config, "storage"> = {
     ...settings,
-    remotePath: `${settings.bucket}/${settings.name}.zip`,
+    remotePath: `${settings.bucket}/${settings.name}`,
     cacheDir: path.join(settings.tmp, "skewcache"),
     archive: path.join(settings.tmp, "skewcache.zip"),
   };

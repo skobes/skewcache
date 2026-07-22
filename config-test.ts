@@ -28,10 +28,10 @@ test("defaults: package name, built-in settings, derived paths", async () => {
   assert.equal(cfg.maxAge.total("days"), 7);
   assert.match("r.42", cfg.assetDir);
   assert.doesNotMatch("v1.2.3", cfg.assetDir);
-  assert.equal(cfg.remotePath, "skewcache/unit-app.zip");
+  assert.equal(cfg.remotePath, "skewcache/unit-app");
   assert.equal(cfg.cacheDir, path.join(".deploytmp", "skewcache"));
   assert.equal(cfg.archive, path.join(".deploytmp", "skewcache.zip"));
-  assert.equal(cfg.storage.description, "r2 (skewcache/unit-app.zip)");
+  assert.equal(cfg.storage.description, "r2 (skewcache/unit-app)");
 });
 
 test("CLI flags override the defaults", async () => {
@@ -52,7 +52,7 @@ test("CLI flags override the defaults", async () => {
   assert.match("v7", cfg.assetDir);
   assert.doesNotMatch("r.7", cfg.assetDir);
   assert.equal(cfg.local, true);
-  assert.equal(cfg.remotePath, "b/other.zip");
+  assert.equal(cfg.remotePath, "b/other");
 });
 
 test("config file supplies settings; CLI flags still win", async () => {

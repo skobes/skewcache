@@ -13,7 +13,7 @@ commands:
   postdeploy             upload new cache
 
 options:
-  --name <name>          project name; the R2 object key is <name>.zip
+  --name <name>          project name; the R2 object key is <name>
                          (default: the "name" field of ./package.json)
   --bucket <bucket>      R2 bucket holding the cache (default: skewcache)
   --dist <dir>           build output directory (default: dist)

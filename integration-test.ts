@@ -97,7 +97,7 @@ test("skewcache round-trips revisions through wrangler's local R2", async (t) =>
 
     const pre = await run("predeploy", "--verbose");
     assert.equal(pre.exitCode, 0, pre.stderr);
-    assert.match(pre.stdout, /skewcache-rc\/skewcache-itest\.zip/, "bucket read from rc");
+    assert.match(pre.stdout, /skewcache-rc\/skewcache-itest\b/, "bucket read from rc");
     assert.match(pre.stderr, /starting with empty skewcache/, "rc bucket has no cache yet");
     assert.match(pre.stderr, /ignoring unknown key "bogus"/);
     fs.rmSync(path.join(proj, ".deploytmp"), { recursive: true, force: true });
@@ -105,7 +105,7 @@ test("skewcache round-trips revisions through wrangler's local R2", async (t) =>
     // CLI flags win over the config file: the default bucket has r.1–r.3.
     const pre2 = await run("predeploy", "--verbose", "--bucket", "skewcache");
     assert.equal(pre2.exitCode, 0, pre2.stderr);
-    assert.match(pre2.stdout, /skewcache\/skewcache-itest\.zip/, "--bucket overrides rc");
+    assert.match(pre2.stdout, /skewcache\/skewcache-itest\b/, "--bucket overrides rc");
     assert.match(pre2.stdout, /restoring \^\d{8}-r\.3 -> dist\/r\.3/);
     fs.rmSync(path.join(proj, ".deploytmp"), { recursive: true, force: true });
     fs.rmSync(rc);

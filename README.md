@@ -54,7 +54,7 @@ and copies them into `dist/`, so that `wrangler deploy` sees the entire set.
 * The `postdeploy` command uploads a new cache that includes the deployment that
 just finished.
 
-By default the cache is stored in R2 as `skewcache/myproject.zip`. You can plug
+By default the cache is stored in R2 as `skewcache/myproject`. You can plug
 in your own storage backend through `skewcache.config.js` if you want to do
 something different.
 
