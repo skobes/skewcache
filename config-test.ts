@@ -85,6 +85,13 @@ test("JS config assetDir accepts a string or a RegExp", async () => {
   assert.match("v7", cfg.assetDir);
 });
 
+test("TS config files are transpiled and loaded", async () => {
+  const rc = path.join(workDir, "rc.ts");
+  fs.writeFileSync(rc, 'const bucket: string = "ts-bucket";\nexport default { bucket };\n');
+  const cfg = await resolveConfig({ config: rc });
+  assert.equal(cfg.bucket, "ts-bucket");
+});
+
 test("invalid --max-age-days dies", async () => {
   await assert.rejects(resolveConfig({ "max-age-days": "nope" }), FatalError);
   await assert.rejects(resolveConfig({ "max-age-days": "-1" }), FatalError);

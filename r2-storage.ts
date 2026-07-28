@@ -1,6 +1,6 @@
 import process from "node:process";
 import spawn, { type Options } from "nano-spawn";
-import type { StorageFactory } from "./config.ts";
+import type { StorageFactory } from "./index.ts";
 import { isVerbose, warn } from "./logging.ts";
 
 // Run wrangler from the project's node_modules/.bin (preferLocal), falling

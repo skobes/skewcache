@@ -2,6 +2,7 @@
   "include": [ "*.ts" ],
   "compilerOptions": {
     "outDir": "dist",
+    "declaration": true,
     "rewriteRelativeImportExtensions": true,
     "skipLibCheck": true,
     "strict": true,

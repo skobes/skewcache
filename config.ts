@@ -3,48 +3,29 @@ import path from "node:path";
 import { cosmiconfig } from "cosmiconfig";
 import { die, warn } from "./logging.ts";
 import { r2Storage } from "./r2-storage.ts";
+import type { ResolvedConfig, Storage, StorageFactory, UserConfig } from "./index.ts";
 
 // Cache entries are named "<YYYYMMDD>-<revdir>", where <revdir> is the
 // revision directory's name in dist, verbatim. A leading "^" marks the
 // newest entry for internal bookkeeping.
 export const ENTRY_RE = /^(\^?)(\d{8})-(.+)$/;
 
-// Storage abstraction for the skewcache archive. The default implementation
-// (r2-storage.ts) keeps the archive in a Cloudflare R2 bucket via wrangler.
-// A JS config file may supply a custom storage factory.
-export interface Storage {
-  // Human-readable location of the archive, used in log messages.
-  readonly description: string;
-
-  // Download the cache archive into the local file at `file`. Returns false
-  // if no archive exists in storage yet; throws if storage is unusable (bad
-  // credentials, missing tooling). Both methods report failure by throwing,
-  // and the caller turns that into a fatal error.
-  get(file: string): Promise<boolean>;
-
-  // Upload the local file at `file` as the new cache archive.
-  put(file: string): Promise<void>;
+// The internal view of the resolved config. Identical to the public
+// ResolvedConfig except that maxAge is a real Temporal.Duration,
+// and the chosen storage backend is attached.
+export interface Config extends ResolvedConfig {
+  maxAge: Temporal.Duration;
+  storage: Storage; // where the cache archive lives (R2 by default)
 }
 
 // Deploy settings, resolved from CLI flags, then the config file, then
-// built-in defaults.
-interface Settings {
-  name: string; // the R2 object key is <name>
-  bucket: string;
-  dist: string;
-  tmp: string;
-  maxAge: Temporal.Duration; // prune cache entries older than this
-  assetDir: RegExp; // matches the revision directory name in dist
-  local: boolean; // use wrangler's local simulated R2
-}
+// built-in defaults. The rest of Config is derived from these.
+type Settings = Pick<
+  Config,
+  "name" | "bucket" | "dist" | "tmp" | "maxAge" | "assetDir" | "local"
+>;
 
-// Builds a Storage implementation from the resolved config. A JS config
-// file may supply one under the "storage" key to replace the default R2
-// implementation (r2-storage.ts).
-export type StorageFactory = (cfg: Omit<Config, "storage">) => Storage;
-
-// A config file may supply any subset of the settings, plus a storage
-// factory (JS configs only; JSON/YAML cannot express functions).
+// A config file's contents, after validation.
 type FileConfig = Partial<Settings> & { storage?: StorageFactory };
 
 // The config-related command-line options, as parsed by main.ts.
@@ -57,13 +38,6 @@ export interface CliOptions {
   "asset-dir"?: string;
   local?: boolean;
   config?: string;
-}
-
-export interface Config extends Settings {
-  remotePath: string; // <bucket>/<name>
-  cacheDir: string; // <tmp>/skewcache
-  archive: string; // <tmp>/skewcache.zip
-  storage: Storage; // where the cache archive lives (R2 by default)
 }
 
 function readPackageName(): string {
@@ -88,7 +62,10 @@ function validateFileConfig(raw: unknown, source: string): FileConfig {
     die(`invalid config in ${source}: specify only one of "maxAge" and "maxAgeDays"`);
   }
   const out: FileConfig = {};
-  for (const [key, value] of Object.entries(raw)) {
+  for (const [rawKey, value] of Object.entries(raw)) {
+    // Narrowing to keyof UserConfig lets the default branch below assert
+    // that every documented key is handled here.
+    const key = rawKey as keyof UserConfig;
     switch (key) {
       case "name":
       case "bucket":
@@ -152,7 +129,9 @@ function validateFileConfig(raw: unknown, source: string): FileConfig {
         out.storage = value as StorageFactory;
         break;
       default:
-        warn(`ignoring unknown key "${key}" in ${source}`);
+        // Adding a key to UserConfig without validating it here is an error.
+        key satisfies never;
+        warn(`ignoring unknown key "${rawKey}" in ${source}`);
     }
   }
   return out;
