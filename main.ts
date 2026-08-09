@@ -1,6 +1,7 @@
 #!/usr/bin/env -S node --harmony-temporal
 
 import { parseArgs } from "node:util";
+import { createRequire } from "node:module";
 import process from "node:process";
 import { resolveConfig } from "./config.ts";
 import { die, error, FatalError, setVerbose } from "./logging.ts";
@@ -29,6 +30,7 @@ options:
   -v, --verbose          show progress steps and stream wrangler output
                          (default: warnings and errors only)
   -h, --help             show this help
+  -V, --version          show the skewcache version
 
 configuration file:
   Options may also be set in skewcache.config.js:
@@ -49,6 +51,13 @@ configuration file:
   Command-line flags take precedence over the config file.
 `;
 
+function ownVersion(): string {
+  const pkg = createRequire(import.meta.url)("skewcache/package.json") as {
+    version?: string;
+  };
+  return pkg.version ?? "unknown";
+}
+
 async function main(): Promise<void> {
   const { values, positionals } = parseArgs({
     allowPositionals: true,
@@ -65,9 +74,14 @@ async function main(): Promise<void> {
       config: { type: "string" },
       verbose: { type: "boolean", short: "v", default: false },
       help: { type: "boolean", short: "h", default: false },
+      version: { type: "boolean", short: "V", default: false },
     },
   });
 
+  if (values.version) {
+    process.stdout.write(`skewcache ${ownVersion()}\n`);
+    return;
+  }
   if (values.help) {
     process.stdout.write(USAGE);
     return;
