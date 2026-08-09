@@ -10,7 +10,12 @@ import { FatalError } from "./logging.ts";
 let workDir: string;
 before(() => {
   workDir = fs.mkdtempSync(path.join(os.tmpdir(), "skewcache-utest-"));
-  fs.writeFileSync(path.join(workDir, "package.json"), '{ "name": "unit-app" }\n');
+  // "type": "module" keeps Node from warning when it type-strips a .ts config
+  // file loaded from this directory.
+  fs.writeFileSync(
+    path.join(workDir, "package.json"),
+    '{ "name": "unit-app", "type": "module" }\n',
+  );
   process.chdir(workDir);
 });
 after(() => {
