@@ -13,30 +13,27 @@ installed.
 ## Usage
 
 First, configure your bundler to put assets under a versioned path like
-`/r.123/foo.js`. I like to use the git revision count as a version number, like
-this:
+`/r.123/foo.js`:
 
 ```js
 // vite.config.js
-import { execSync } from "node:child_process";
+import { assetDir } from "skewcache";
 import { defineConfig } from "vite";
 
-function run(cmd) { return execSync(cmd, { encoding: "utf8" }).trim(); }
-const assetDir = `r.${run("git rev-list HEAD --count")}`;
+const dir = assetDir(); // "r.123"
 
 export default defineConfig(() => {
   return { build: { rolldownOptions: { output: {
-    assetFileNames: `${assetDir}/[name][extname]`,
-    chunkFileNames: `${assetDir}/[name].js`,
-    entryFileNames: `${assetDir}/main.js`
+    assetFileNames: `${dir}/[name][extname]`,
+    chunkFileNames: `${dir}/[name].js`,
+    entryFileNames: `${dir}/main.js`
   } } } };
 });
 ```
 
-You can use some other convention if you want. Skewcache looks for `r.N` by
-default but can be configured to match any pattern. Versions don't have to be
-ordered, so you could use a SHA hash instead of a monotonic counter. (Note
-that a versioned path prefix means we don't need a content hash in the filename.)
+The `assetDir()` helper generates a monotonic version number using
+`git rev-list --count HEAD`. (Note that a versioned path prefix means
+we don't need a content hash in the filename.)
 
 Next, hook Skewcache up to your `package.json` scripts like this:
 
@@ -67,9 +64,14 @@ Deployments more than a week old are discarded, so the cache doesn't grow
 unbounded. However, the previous deployment is always kept, regardless
 of age. The 1-week threshold can be configured.
 
+The skewcache CLI looks for `r.N` asset dirs by default but can be configured
+to match any pattern. You can pass a custom format to `assetDir()` or roll your
+own. Versions don't have to be ordered, so you could e.g. use a SHA hash instead
+of a monotonic counter.
+
 ## Configuration
 
-You can customize Skewcache with `skewcache.config.js` or any of the variations
+You can customize skewcache with `skewcache.config.js` or any of the variations
 that [cosmiconfig](https://github.com/cosmiconfig/cosmiconfig) looks for.
 
 ```js

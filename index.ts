@@ -1,4 +1,7 @@
-// Package entry point declaring types for config files.
+// Package entry point declaring types for config files, plus the assetDir()
+// helper for bundler configs.
+
+export { assetDir } from "./asset-dir.ts";
 
 // A subset of Temporal.DurationLike so consumers don't need native Temporal.
 export interface DurationLike {
