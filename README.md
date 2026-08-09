@@ -91,26 +91,3 @@ export default {
 
 All of these except `storage` can also be specified as command-line flags
 (`skewcache --help` for details).
-
-## Dependencies
-
-Skewcache has less than 1 MB of transitive dependencies.
-
-```
-$ npx cost-of-modules
-┌─────────────┬────────────┬───────┐
-│ name        │ children   │ size  │
-├─────────────┼────────────┼───────┤
-│ fflate      │ 0          │ 0.76M │
-├─────────────┼────────────┼───────┤
-│ loglevel    │ 0          │ 0.08M │
-├─────────────┼────────────┼───────┤
-│ cosmiconfig │ 0          │ 0.07M │
-├─────────────┼────────────┼───────┤
-│ nano-spawn  │ 0          │ 0.04M │
-├─────────────┼────────────┼───────┤
-│ yoctocolors │ 0          │ 0.01M │
-├─────────────┼────────────┼───────┤
-│ 5 modules   │ 0 children │ 0.97M │
-└─────────────┴────────────┴───────┘
-```

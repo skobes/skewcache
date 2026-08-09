@@ -25,18 +25,21 @@
   "bin": {
     "skewcache": "dist/main.js"
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "default": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "prepack": "npm run build",
+    "prepare": "npm run build",
     "type-check": "tsc --noEmit",
     "test": "npm run test:unit && node integration-test.ts",
     "test:unit": "node --harmony-temporal --test \"!(integration)-test.ts\""
@@ -47,7 +50,7 @@
     "wrangler": "^4.110.0"
   },
   "dependencies": {
-    "cosmiconfig": "^9.0.2",
+    "cosmiconfig": "^10.0.0",
     "fflate": "^0.8.3",
     "loglevel": "^1.9.2",
     "nano-spawn": "^2.1.0",

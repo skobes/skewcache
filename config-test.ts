@@ -85,7 +85,7 @@ test("JS config assetDir accepts a string or a RegExp", async () => {
   assert.match("v7", cfg.assetDir);
 });
 
-test("TS config files are transpiled and loaded", async () => {
+test("TS config files are type-stripped and loaded", async () => {
   const rc = path.join(workDir, "rc.ts");
   fs.writeFileSync(rc, 'const bucket: string = "ts-bucket";\nexport default { bucket };\n');
   const cfg = await resolveConfig({ config: rc });
