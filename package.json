@@ -1,6 +1,6 @@
 {
   "name": "skewcache",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Mixes downlevel assets into your dist/ when deploying to Cloudflare.",
   "keywords": [
     "cloudflare",
