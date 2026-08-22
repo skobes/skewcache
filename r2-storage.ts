@@ -1,5 +1,6 @@
 import process from "node:process";
-import spawn, { type Options } from "nano-spawn";
+import spawn from "nano-spawn";
+import type { Options } from "nano-spawn";
 import type { StorageFactory } from "./index.ts";
 import { isVerbose, warn } from "./logging.ts";
 
