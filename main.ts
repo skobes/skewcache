@@ -58,25 +58,45 @@ function ownVersion(): string {
   return pkg.version ?? "unknown";
 }
 
+// parseArgs throws a TypeError for bad input; report it as a one-line fatal
+// error instead of letting it print a stack trace.
+function argError(err: unknown): never {
+  const code = (err as { code?: unknown } | null)?.code;
+  if (
+    err instanceof Error &&
+    typeof code === "string" &&
+    code.startsWith("ERR_PARSE_ARGS_")
+  ) {
+    // Node appends a hint about "--" to the unknown-option message; keep
+    // just the first sentence.
+    die(`${err.message.split(". ")[0]}\n\n${USAGE.split("\n")[0]}`);
+  }
+  throw err;
+}
+
 async function main(): Promise<void> {
-  const { values, positionals } = parseArgs({
-    allowPositionals: true,
-    options: {
-      // Options without a default here may be supplied by the config file;
-      // the built-in default applies only when neither source sets them.
-      name: { type: "string" },
-      bucket: { type: "string" },
-      dist: { type: "string" },
-      tmp: { type: "string" },
-      "max-age-days": { type: "string" },
-      "asset-dir": { type: "string" },
-      local: { type: "boolean" },
-      config: { type: "string" },
-      verbose: { type: "boolean", short: "v", default: false },
-      help: { type: "boolean", short: "h", default: false },
-      version: { type: "boolean", short: "V", default: false },
-    },
-  });
+  const options = {
+    // Options without a default here may be supplied by the config file;
+    // the built-in default applies only when neither source sets them.
+    name: { type: "string" },
+    bucket: { type: "string" },
+    dist: { type: "string" },
+    tmp: { type: "string" },
+    "max-age-days": { type: "string" },
+    "asset-dir": { type: "string" },
+    local: { type: "boolean" },
+    config: { type: "string" },
+    verbose: { type: "boolean", short: "v", default: false },
+    help: { type: "boolean", short: "h", default: false },
+    version: { type: "boolean", short: "V", default: false },
+  } as const;
+  const { values, positionals } = (() => {
+    try {
+      return parseArgs({ allowPositionals: true, options });
+    } catch (err) {
+      argError(err);
+    }
+  })();
 
   if (values.version) {
     process.stdout.write(`skewcache ${ownVersion()}\n`);
