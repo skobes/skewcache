@@ -32,8 +32,21 @@ function findRevision(cfg: Config): string {
   } else if (revs.length > 1) {
     die(`multiple revision directories found in ${cfg.dist}/ (${revs.join(", ")})`);
   }
+  const src = path.join(cfg.dist, revs[0]);
+  // createZip does not preserve empty directories, so a revision holding no
+  // files would vanish from the uploaded archive, taking the newest-entry
+  // marker with it.
+  if (!hasFiles(src)) {
+    die(`revision directory ${src}/ contains no files`);
+  }
   info(`found ${revs[0]}`);
   return revs[0];
+}
+
+function hasFiles(dir: string): boolean {
+  return (fs.readdirSync(dir, { recursive: true }) as string[]).some(
+    (name) => !fs.statSync(path.join(dir, name)).isDirectory(),
+  );
 }
 
 function makeTmpDir(cfg: Config): void {

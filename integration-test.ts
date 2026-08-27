@@ -111,6 +111,15 @@ test("skewcache round-trips revisions through wrangler's local R2", async (t) =>
     fs.rmSync(rc);
   });
 
+  await t.test("an empty revision directory is rejected", async () => {
+    fs.rmSync(path.join(proj, "dist"), { recursive: true, force: true });
+    fs.mkdirSync(path.join(proj, "dist", "r.7", "chunks"), { recursive: true });
+    const pre = await run("predeploy");
+    assert.equal(pre.exitCode, 1);
+    assert.match(pre.stderr, /dist\/r\.7\/ contains no files/);
+    assert.ok(!fs.existsSync(path.join(proj, ".deploytmp")), "fails before touching .deploytmp");
+  });
+
   await t.test("custom revision formats via --asset-dir", async () => {
     const makeVersionBuild = (v: string) => {
       fs.rmSync(path.join(proj, "dist"), { recursive: true, force: true });
