@@ -35,7 +35,15 @@ The `assetDir()` helper generates a monotonic version number using
 `git rev-list --count HEAD`. (Note that a versioned path prefix means
 we don't need a content hash in the filename.)
 
-Next, hook Skewcache up to your `package.json` scripts like this:
+Next, configure your [`_headers`](https://developers.cloudflare.com/workers/static-assets/headers/)
+file so that browsers will cache those assets:
+
+```
+/r.:rev/*
+  Cache-Control: public, max-age=31536000, immutable
+```
+
+Finally, hook Skewcache up to your `package.json` scripts like this:
 
 ```js
 {
