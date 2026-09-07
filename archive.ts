@@ -16,9 +16,16 @@ export function createZip(dir: string, file: string): void {
 
 // Extract the zip archive at `file` into `dir`, creating it if needed.
 export function extractZip(file: string, dir: string): void {
+  const root = path.resolve(dir);
   const entries = unzipSync(fs.readFileSync(file));
   for (const [name, data] of Object.entries(entries)) {
-    const dest = path.join(dir, name);
+    // Ignore directory entries.
+    if (name.endsWith("/")) continue;
+    const dest = path.resolve(root, name);
+    // Precaution: reject anything that would escape `dir`
+    if (dest !== root && !dest.startsWith(root + path.sep)) {
+      throw new Error(`archive entry escapes ${dir}: ${name}`);
+    }
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.writeFileSync(dest, data);
   }
