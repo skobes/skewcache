@@ -36,7 +36,9 @@ export function restoreRecentRevisions(cfg: Config): void {
     if (Temporal.PlainDate.compare(entryDate, cutoff) <= 0 && !isNewest) {
       info(`deleting stale entry ${name}`);
       fs.rmSync(entryPath, { recursive: true });
-    } else if (fs.existsSync(dest)) {
+      // lstat, not exists: a dangling symlink at dest still occupies the path,
+      // and cpSync would fail on it.
+    } else if (fs.lstatSync(dest, { throwIfNoEntry: false })) {
       warn(`${dest} already exists; discarding skewcache/${name}`);
       fs.rmSync(entryPath, { recursive: true });
     } else {

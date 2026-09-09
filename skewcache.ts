@@ -23,9 +23,8 @@ function findRevision(cfg: Config): string {
     die(`build output directory ${cfg.dist}/ does not exist`);
   }
   const revs = fs
-    .readdirSync(cfg.dist, { withFileTypes: true })
-    .filter((e) => e.isDirectory() && cfg.assetDir.test(e.name))
-    .map((e) => e.name);
+    .readdirSync(cfg.dist)
+    .filter((name) => cfg.assetDir.test(name) && isDir(path.join(cfg.dist, name)));
 
   if (revs.length === 0) {
     die(`no directory matching ${cfg.assetDir} found in ${cfg.dist}/`);
@@ -33,20 +32,29 @@ function findRevision(cfg: Config): string {
     die(`multiple revision directories found in ${cfg.dist}/ (${revs.join(", ")})`);
   }
   const src = path.join(cfg.dist, revs[0]);
-  // createZip does not preserve empty directories, so a revision holding no
-  // files would vanish from the uploaded archive, taking the newest-entry
-  // marker with it.
-  if (!hasFiles(src)) {
-    die(`revision directory ${src}/ contains no files`);
-  }
+  checkRevision(src);
   info(`found ${revs[0]}`);
   return revs[0];
 }
 
-function hasFiles(dir: string): boolean {
-  return (fs.readdirSync(dir, { recursive: true }) as string[]).some(
-    (name) => !fs.statSync(path.join(dir, name)).isDirectory(),
-  );
+function checkRevision(dir: string): void {
+  let files = 0;
+  for (const name of fs.readdirSync(dir, { recursive: true }) as string[]) {
+    // Fail on broken symlink.
+    const st = fs.statSync(path.join(dir, name), { throwIfNoEntry: false });
+    if (!st) die(`revision directory ${dir}/ contains a broken symlink: ${name}`);
+    if (!st.isDirectory()) files++;
+  }
+  // createZip does not preserve empty directories, so a revision holding no
+  // files would vanish from the uploaded archive, taking the newest-entry
+  // marker with it.
+  if (files === 0) die(`revision directory ${dir}/ contains no files`);
+}
+
+// statSync follows symlinks, so the revision directory may be a link to the
+// build output elsewhere. A dangling link stats as missing and is skipped.
+function isDir(p: string): boolean {
+  return fs.statSync(p, { throwIfNoEntry: false })?.isDirectory() ?? false;
 }
 
 function makeTmpDir(cfg: Config): void {
@@ -96,7 +104,10 @@ function saveRevision(cfg: Config, rev: string): void {
   const dest = path.join(cfg.cacheDir, entryName);
   fs.rmSync(dest, { recursive: true, force: true });
   fs.rmSync(path.join(cfg.cacheDir, `${today}-${rev}`), { recursive: true, force: true });
-  fs.cpSync(src, dest, { recursive: true });
+  // If src is a symlink we want its target's contents, not the link itself.
+  // Note: dereference:true in fs.cpSync is currently broken:
+  // https://github.com/nodejs/node/issues/59168
+  fs.cpSync(fs.realpathSync(src), dest, { recursive: true });
 }
 
 export async function postdeploy(cfg: Config): Promise<void> {

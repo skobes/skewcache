@@ -120,6 +120,63 @@ test("skewcache round-trips revisions through wrangler's local R2", async (t) =>
     assert.ok(!fs.existsSync(path.join(proj, ".deploytmp")), "fails before touching .deploytmp");
   });
 
+  await t.test("a broken symlink in the revision is rejected", async () => {
+    fs.rmSync(path.join(proj, "dist"), { recursive: true, force: true });
+    fs.mkdirSync(path.join(proj, "dist", "r.7"), { recursive: true });
+    fs.writeFileSync(path.join(proj, "dist", "r.7", "app.js"), "asset-v7\n");
+    fs.symlinkSync("../gone/logo.svg", path.join(proj, "dist", "r.7", "logo.svg"));
+    const pre = await run("predeploy");
+    assert.equal(pre.exitCode, 1);
+    assert.match(pre.stderr, /dist\/r\.7\/ contains a broken symlink: logo\.svg/);
+    assert.doesNotMatch(pre.stderr, /at .*\.ts:\d+/, "no stack trace");
+    assert.ok(!fs.existsSync(path.join(proj, ".deploytmp")), "fails before touching .deploytmp");
+  });
+
+  await t.test("a symlinked revision directory is followed", async () => {
+    const args = ["--name", "itest-symlink"];
+    const build = path.join(proj, "build-out");
+    fs.rmSync(path.join(proj, "dist"), { recursive: true, force: true });
+    fs.mkdirSync(path.join(build, "r.8"), { recursive: true });
+    fs.writeFileSync(path.join(build, "r.8", "app.js"), "asset-v8\n");
+    // Links inside the revision, pointing outside it, must be followed too.
+    fs.mkdirSync(path.join(build, "shared", "vendor"), { recursive: true });
+    fs.writeFileSync(path.join(build, "shared", "logo.svg"), "<svg/>\n");
+    fs.writeFileSync(path.join(build, "shared", "vendor", "lib.js"), "lib-v8\n");
+    fs.symlinkSync("../shared/logo.svg", path.join(build, "r.8", "logo.svg"));
+    fs.symlinkSync("../shared/vendor", path.join(build, "r.8", "vendor"));
+    // A bundler may leave dist/r.8 as a link to the real output directory.
+    fs.mkdirSync(path.join(proj, "dist"));
+    fs.symlinkSync(path.join(build, "r.8"), path.join(proj, "dist", "r.8"));
+
+    const pre = await run("predeploy", "--verbose", ...args);
+    assert.equal(pre.exitCode, 0, pre.stderr);
+    assert.match(pre.stdout, /found r\.8/);
+    const post = await run("postdeploy", ...args);
+    assert.equal(post.exitCode, 0, post.stderr);
+
+    // The link's target, not the link, was cached: a later deploy restores
+    // r.8 as a real directory holding the file.
+    makeBuild(9);
+    const pre2 = await run("predeploy", "--verbose", ...args);
+    assert.equal(pre2.exitCode, 0, pre2.stderr);
+    assert.match(pre2.stdout, /restoring \^\d{8}-r\.8 -> dist\/r\.8/);
+    for (const f of ["app.js", "logo.svg", "vendor/lib.js"]) {
+      const p = path.join(proj, "dist", "r.8", ...f.split("/"));
+      assert.ok(!fs.lstatSync(p).isSymbolicLink(), `${f} restored as a real file`);
+    }
+    assert.equal(
+      fs.readFileSync(path.join(proj, "dist", "r.8", "app.js"), "utf8"),
+      "asset-v8\n",
+    );
+    assert.equal(
+      fs.readFileSync(path.join(proj, "dist", "r.8", "vendor", "lib.js"), "utf8"),
+      "lib-v8\n",
+    );
+    const post2 = await run("postdeploy", ...args);
+    assert.equal(post2.exitCode, 0, post2.stderr);
+    fs.rmSync(build, { recursive: true, force: true });
+  });
+
   await t.test("custom revision formats via --asset-dir", async () => {
     const makeVersionBuild = (v: string) => {
       fs.rmSync(path.join(proj, "dist"), { recursive: true, force: true });
