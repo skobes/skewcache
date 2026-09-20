@@ -60,5 +60,8 @@
     "esbuild": true,
     "sharp": true,
     "workerd": true
-  }
+  },
+  "workspaces": [
+    "web"
+  ]
 }
