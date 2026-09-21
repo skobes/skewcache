@@ -1,5 +1,9 @@
 {
   "name": "skewcache-web",
   "type": "module",
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "@fontsource-variable/spline-sans": "^5.3.0",
+    "@fontsource/prosto-one": "^5.3.0"
+  }
 }
