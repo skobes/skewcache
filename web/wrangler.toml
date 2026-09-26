@@ -1,0 +1,5 @@
+name = "skewcache-web"
+compatibility_date = "2026-09-22"
+workers_dev = false
+preview_urls = false
+assets = { not_found_handling = "404-page" }

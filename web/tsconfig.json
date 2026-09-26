@@ -1,0 +1,11 @@
+{
+  "include": [ "*.ts" ],
+  "compilerOptions": {
+    "noEmit": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
+    "skipLibCheck": true,
+    "target": "esnext",
+    "module": "preserve",
+    "allowImportingTsExtensions": true
+  }
+}

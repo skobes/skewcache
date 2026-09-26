@@ -1,0 +1,27 @@
+@font-face {
+  font-family: "Prosto One";
+  src: url(./gen/prosto-one.woff2) format("woff2");
+}
+@font-face {
+  font-family: "Spline Sans";
+  src: url(./gen/spline-sans.woff2) format("woff2");
+}
+
+:root {
+  color-scheme: light dark;
+  font: 12pt "Spline Sans";
+}
+
+header {
+  font: 24pt "Prosto One";
+}
+
+body {
+  max-width: 640px;
+  margin: 1em auto;
+  padding: 0 1em;
+}
+
+img {
+  max-width: 100%;
+}

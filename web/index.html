@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width">
   <title>Skewcache</title>
   <link rel="preload" as="font" crossorigin
-        href="fonts/prosto-one-subset.woff2">
+        href="gen/spline-sans.woff2">
   <link rel="stylesheet" href="home.css">
   <script type="module" src="home.ts"></script>
 </head>
@@ -15,15 +15,27 @@
     <p>
       Skewcache is a tool for web developers. It hooks into the deployment step
       and copies downlevel versions of static assets into the deployment for the
-      benefit of pre-existing client sessions that may want to fetch lazy-loaded
-      JavaScript or similar subresources.
+      benefit of pre-existing client sessions that may want to fetch
+      <a href="javascript:void(showDialog())">lazy-loaded JavaScript</a>
+      or similar subresources.
     </p>
     <p><img src="skewcache.svg"></p>
+    <p>
+      Skewcache is a good fit for projects that use a bundler like Vite, which
+      can place assets under a configured directory path, and a hosting platform
+      like Cloudflare Workers Static Assets, where each deployment atomically
+      replaces the entire file set.
+    </p>
     <p>
       You can install skewcache from the
       <a href="https://www.npmjs.com/package/skewcache">npm registry</a>
       or view the source code on
-      <a href="https://github.com/skobes/skewcache">GitHub</a>.
+      <a href="https://github.com/skobes/skewcache">GitHub</a>. For usage
+      instructions, refer to the
+      <a href="https://www.npmjs.com/package/skewcache?activeTab=readme">Readme</a>.
+      Skewcache is written and maintained by
+      <a href="https://kobes.ca/">Steve Kobes</a>
+      and available under an open-source (MIT) license.
     </p>
   </main>
 </body>
