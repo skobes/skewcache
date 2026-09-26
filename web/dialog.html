@@ -1,0 +1,26 @@
+<style>
+  dialog {
+    max-width: 15em;
+    padding-top: 0;
+    form { text-align: center; }
+    button { padding: 0.4em; font: 12pt "Spline Sans"; }
+  }
+</style>
+<dialog id="demoDialog">
+  <p>
+    This dialog was rendered by a lazy-loaded JavaScript module.
+  </p>
+  <p>
+    Your browser requested it from
+    <code id="moduleUrl"></code>
+    after you clicked on the link.
+  </p>
+  <p>
+    Learn more about
+    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import"
+      >dynamic imports</a> on MDN.
+  </p>
+  <form method="dialog">
+    <button value="ok">That's neat</button>
+  </form>
+</dialog>

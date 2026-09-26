@@ -6,6 +6,7 @@
     "skipLibCheck": true,
     "target": "esnext",
     "module": "preserve",
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "types": [ "vite/client" ]
   }
 }
