@@ -25,3 +25,34 @@ body {
 img {
   max-width: 100%;
 }
+
+header span {
+  display: inline-block;
+  transform: skewY(-5deg);
+}
+
+header span + span {
+  margin-left: -0.05em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  header span {
+    animation: 0.15s both collide-left;
+  }
+
+  header span + span {
+    animation-name: collide-right;
+  }
+}
+
+@keyframes collide-left {
+  0% { transform: translateX(-1em) skewY(0); animation-timing-function: ease-in; }
+  60% { transform: translateX(0) skewY(0); animation-timing-function: ease-out; }
+  100% { transform: translateX(0) skewY(-5deg); }
+}
+
+@keyframes collide-right {
+  0% { transform: translateX(1em) skewY(0); animation-timing-function: ease-in; }
+  60% { transform: translateX(0) skewY(0); animation-timing-function: ease-out; }
+  100% { transform: translateX(0) skewY(-5deg); }
+}
