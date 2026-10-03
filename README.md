@@ -1,14 +1,14 @@
 # Skewcache
 
-Skewcache mixes downlevel assets into your `dist/` when you deploy to
-[Cloudflare Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/),
-so that active client sessions from a previous deployment can still fetch
-delay-loaded JavaScript or similar static resources.
+Skewcache mixes downlevel static assets into your `dist/` so that active client
+sessions from a previous deployment can still fetch lazy-loaded JavaScript or
+similar subresources. See [skewcache.dev](https://skewcache.dev/) for a
+conceptual overview and a pretty picture.
 
 Install: `npm install -D skewcache`
 
 You will also need [Wrangler](https://developers.cloudflare.com/workers/wrangler/install-and-update/)
-installed.
+installed for the default storage backend (R2).
 
 ## Usage
 
@@ -35,8 +35,9 @@ The `assetDir()` helper generates a monotonic version number using
 `git rev-list --count HEAD`. (Note that a versioned path prefix means
 we don't need a content hash in the filename.)
 
-Next, configure your [`_headers`](https://developers.cloudflare.com/workers/static-assets/headers/)
-file so that browsers will cache those assets:
+You'll probably also want to configure
+[`_headers`](https://developers.cloudflare.com/workers/static-assets/headers/)
+so that browsers will cache those assets:
 
 ```
 /r.:rev/*
@@ -58,24 +59,24 @@ Finally, hook Skewcache up to your `package.json` scripts like this:
 }
 ```
 
-Two steps invoke Skewcache:
-* The `predeploy` command downloads a cache of assets from prior deployments
-and copies them into `dist/`, so that `wrangler deploy` sees the entire set.
-* The `postdeploy` command uploads a new cache that includes the deployment that
-just finished.
+This shows the two primary Skewcache commands:
+* `predeploy` downloads a cache of assets from prior deployments and copies them
+  into `dist/`, so that `wrangler deploy` sees the combined set.
+* `postdeploy` uploads a new cache that includes the deployment that just
+  finished.
 
 By default the cache is stored in R2 as `skewcache/myproject`. You can plug
 in your own storage backend through `skewcache.config.js` if you want to do
 something different.
 
 Deployments more than a week old are discarded, so the cache doesn't grow
-unbounded. However, the previous deployment is always kept, regardless
+unbounded. However, the most recent deployment is always preserved regardless
 of age. The 1-week threshold can be configured.
 
-The skewcache CLI looks for `r.N` asset dirs by default but can be configured
+The skewcache CLI looks for `r.N` asset dirs by default. It can be configured
 to match any pattern. You can pass a custom format to `assetDir()` or roll your
-own. Versions don't have to be ordered, so you could e.g. use a SHA hash instead
-of a monotonic counter.
+own. Versions don't have to be ordered, so you could for example use a SHA hash
+instead of a monotonic counter.
 
 ## Configuration
 
