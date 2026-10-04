@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
   <title>Skewcache</title>
+  <meta name="description"
+        content="Skewcache: a tool for web developers to deploy static assets robustly">
   <link rel="preload" as="font" crossorigin
         href="gen/spline-sans.woff2">
   <link rel="stylesheet" href="home.css">
@@ -20,7 +22,10 @@
       <a id="lazyLoadLink" href="">lazy-loaded JavaScript</a>
       or similar subresources.
     </p>
-    <p><img src="skewcache.svg"></p>
+    <p><img src="skewcache.svg"
+            alt="Illustration: the developer deploys release r.1, then r.2,
+                 through Skewcache to a static host. A client that loaded r.1
+                 can still fetch r.1/late.js after r.2 is live."></p>
     <p>
       Skewcache is a good fit for projects that use a bundler like
       <a href="https://vite.dev/">Vite</a>,
