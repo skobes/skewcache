@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --harmony-temporal
+#!/usr/bin/env node
 
 import { parseArgs } from "node:util";
 import { createRequire } from "node:module";

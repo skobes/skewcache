@@ -26,7 +26,7 @@ test("skewcache round-trips revisions through wrangler's local R2", async (t) =>
   // which carries the same stdout/stderr/exitCode fields as a success.
   const run = async (...args: string[]) => {
     try {
-      const result = await spawn("node", ["--harmony-temporal", cli, ...args, "--local"], {
+      const result = await spawn("node", [cli, ...args, "--local"], {
         cwd: proj,
         env: { PATH: `${binDir}${path.delimiter}${process.env.PATH}` },
       });
